@@ -1,0 +1,132 @@
+@model IEnumerable<PlantSense.Models.SolutionSettings>
+<!-- Modal -->
+<div class="modal fade" id="WateringSettingsModal" tabindex="-1" role="dialog" aria-labelledby="WateringModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-left-primary shadow py-2">
+            <div class="modal-header">
+                <i class="fas fa-leaf col-xl-1"></i>
+                <h5 class="modal-title text-primary" id="WateringModalLabel">Watering Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <label>Pump Name</label>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="pumpIdText">Pump 0</span>
+                        </div>
+                        <input id="pumpName" type="text" class="form-control" placeholder="Pump Name" aria-label="Pump 0" aria-describedby="pumpIdText">
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="enableWateringForPumpSwitch" onclick="toggleUseWateringGroup()">
+                            <label class="custom-control-label" for="enableWateringForPumpSwitch">Enable Pump</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">GPIO Pin (BCM):</label>
+                        <select class="form-control" id="pumpPinout"></select>
+                    </div>
+                    <div class="form-group" id="useWateringGroup" hidden>
+                        <div class="form-group">
+                            <label class="control-label">Runtime (In Seconds)</label>
+                            <input class="form-control" id="pumpRuntime" type="text" placeholder="" />
+                        </div>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text" for="wateringTriggerSelector">Trigger</label>
+                            </div>
+                            <select class="custom-select" id="wateringTriggerSelector" onchange="toggleTriggerType(this.value)">
+                                <option selected>Choose...</option>
+                                <option value="0">Sensor Threshold</option>
+                                <option value="1">Timer</option>
+                                <option value="2">Manual</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="triggerThresholdGroup" hidden>
+                            <label>Use sensor:</label>
+                            <select class="form-control" id="waterThresholdForSensor" onchange="updateSensorThresholdHint()">
+                                @{
+                                    for (int i = 0; i < Model.First().lstsensors.Count; i++)
+                                    {
+                                        var s = Model.First().lstsensors[i];
+                                        <option value=@(i) data-threshold="@s.notificationThreshold">@s.name</option>
+                                    }
+                                }
+                            </select>
+                            <small class="form-text text-muted" id="sensorThresholdHint"></small>
+                            <small class="form-text text-muted">
+                                The pump runs when this sensor's moisture drops below its threshold. The
+                                threshold % is set on the sensor itself, not here — open that sensor's
+                                settings from the Dashboard to change it. See the
+                                <a asp-controller="Docs" asp-action="Index">Docs</a> page's
+                                "Watering setup" section for the full walkthrough.
+                            </small>
+                        </div>
+                        <div class="form-group" id="triggerTimerGroup" hidden>
+                            <div>
+                                <label>Time</label>
+                                <input class="form-control mb-3" id="waterTimeSchedule" type="time" />
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterMonday">
+                                <label class="form-check-label">
+                                    Monday
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterTuseday">
+                                <label class="form-check-label">
+                                    Tuesday
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterWednesday">
+                                <label class="form-check-label">
+                                    Wednesday
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterThursday">
+                                <label class="form-check-label">
+                                    Thursday
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterFriday">
+                                <label class="form-check-label">
+                                    Friday
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterSaturday">
+                                <label class="form-check-label">
+                                    Saturday
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="waterSunday">
+                                <label class="form-check-label">
+                                    Sunday
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="m-0 mb-2 w-100 font-weight-bold text-primary" id="Wateringstatus">&nbsp</p>
+                <button type="button" class="btn btn-secondary" onClick="ResetWateringModal()" data-dismiss="modal">Close</button>
+                <button type="button" onClick="SaveWateringSettings()" class="btn btn-save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var pumpPinMap = [@string.Join(",", Model.First().lstpumps.Select(p => p.pinout))];
+</script>
+<script src="~/js/gui/wateringmodal.js"></script>
+<script src="~/js/gui/wateringindex.js" defer></script>

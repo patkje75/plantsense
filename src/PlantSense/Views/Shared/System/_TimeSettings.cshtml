@@ -1,0 +1,36 @@
+<!-- Time & Date Settings Modal -->
+<div class="modal fade" id="timeSettingsModal" tabindex="-1" role="dialog" aria-labelledby="timeSettingsModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-left-primary shadow py-2">
+            <div class="modal-header">
+                <i class="fas fa-clock col-xl-1"></i>
+                <h5 class="modal-title text-primary" id="timeSettingsModalLabel">Time &amp; Date</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Current device time: <strong id="currentDeviceTime">…</strong></p>
+                <form>
+                    <div class="form-group">
+                        <label class="control-label">Set date &amp; time:</label>
+                        <input class="form-control" id="systemDateTime" type="datetime-local" />
+                    </div>
+                    <small class="text-muted">
+                        A correct clock matters for watering schedules. Setting the clock disables
+                        automatic (NTP) time sync and requires passwordless sudo for
+                        <code>timedatectl</code> — see the Docs page.
+                    </small>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="m-0 mb-2 w-100 font-weight-bold text-primary small" id="timestatus">&nbsp;</p>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onClick="SaveTimeSettings()" id="setTimeButton" class="btn btn-save">Set time</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/gui/timesettingsmodal.js"></script>

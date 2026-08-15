@@ -1,0 +1,64 @@
+<!-- Air Sensor Settings Modal -->
+<div class="modal fade" id="airSensorSettingsModal" tabindex="-1" role="dialog" aria-labelledby="airSensorModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-left-success shadow py-2">
+            <div class="modal-header">
+                <i class="fas fa-thermometer-half col-xl-1"></i>
+                <h5 class="modal-title text-success" id="airSensorModalLabel">Air Sensor Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="control-label">Name:</label>
+                        <input class="form-control" id="airSensorName" type="text" placeholder="Air Sensor" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Protocol:</label>
+                        <select class="form-control" id="airSensorProtocol" onchange="OnAirSensorProtocolChange()">
+                            <option value="ZWave">Z-Wave</option>
+                            <option value="Zigbee">Zigbee</option>
+                        </select>
+                    </div>
+                    <!-- Z-Wave topics -->
+                    <div id="airZwaveSection">
+                        <div class="form-group">
+                            <label class="control-label">Temperature MQTT Topic:</label>
+                            <input class="form-control" id="airTempTopic" type="text"
+                                   placeholder="zwave/{nodeId}/sensorMultilevel/Air temperature/value" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Humidity MQTT Topic:</label>
+                            <input class="form-control" id="airHumTopic" type="text"
+                                   placeholder="zwave/{nodeId}/sensorMultilevel/Humidity/value" />
+                        </div>
+                    </div>
+                    <!-- Zigbee topics -->
+                    <div id="airZigbeeSection" style="display:none">
+                        <div class="form-group">
+                            <label class="control-label">Temperature MQTT Topic:</label>
+                            <input class="form-control" id="airZigbeeTempTopic" type="text"
+                                   placeholder="zigbee2mqtt/{deviceId}/temperature" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Humidity MQTT Topic:</label>
+                            <input class="form-control" id="airZigbeeHumTopic" type="text"
+                                   placeholder="zigbee2mqtt/{deviceId}/humidity" />
+                        </div>
+                    </div>
+                    <small class="text-muted">Changes take effect immediately.</small>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="m-0 mb-2 w-100 font-weight-bold text-primary" id="airSensorStatus">&nbsp;</p>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="SaveAirSensorConfig()" class="btn btn-save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/gui/airsensormodal.js"></script>

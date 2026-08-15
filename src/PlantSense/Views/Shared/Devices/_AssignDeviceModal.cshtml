@@ -1,0 +1,45 @@
+<!-- Assign Discovered Device Modal -->
+<div class="modal fade" id="assignDeviceModal" tabindex="-1" role="dialog" aria-labelledby="assignDeviceModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-left-primary shadow py-2">
+            <div class="modal-header">
+                <i class="fas fa-plug col-xl-1"></i>
+                <h5 class="modal-title text-primary" id="assignDeviceModalLabel">Assign Device</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="font-weight-bold" id="assignDeviceSummary"></p>
+                <form>
+                    <div class="form-group">
+                        <label class="control-label">Assign to:</label>
+                        <select class="form-control" id="assignTargetSlot" onchange="OnAssignTargetChange()"></select>
+                    </div>
+                    <div class="form-group" id="assignPropertySection" style="display:none">
+                        <label class="control-label">Reported properties:</label>
+                        <select class="form-control" id="assignProperty" onchange="ResetAssignStatus()"></select>
+                        <small class="text-muted">
+                            Informational — the device's base topic is stored and PlantSense extracts
+                            the value from the JSON payload automatically.
+                        </small>
+                    </div>
+                    <div class="form-group" id="assignZwaveTopicSection" style="display:none">
+                        <label class="control-label">Value MQTT Topic:</label>
+                        <input class="form-control" id="assignZwaveTopic" type="text" oninput="ResetAssignStatus()" />
+                        <small class="text-muted">
+                            Complete the value topic — it is shown per value in Z-Wave JS UI
+                            (Control Panel &rarr; node &rarr; values).
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="m-0 mb-2 w-100 font-weight-bold text-primary" id="assignstatus">&nbsp;</p>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onClick="SaveAssignment()" class="btn btn-save">Assign</button>
+            </div>
+        </div>
+    </div>
+</div>

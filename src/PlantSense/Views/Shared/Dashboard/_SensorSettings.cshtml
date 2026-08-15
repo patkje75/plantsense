@@ -1,0 +1,72 @@
+﻿<!-- Modal -->
+<div class="modal fade" id="sensorSettingsModal" tabindex="-1" role="dialog" aria-labelledby="sensorModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-content border-left-success shadow py-2">
+            <div class="modal-header">
+                <i class="fas fa-leaf col-xl-1"></i>
+                <h5 class="modal-title text-success" id="sensorModalLabel">Sensor Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="control-label">Sensor Name:</label>
+                        <input class="form-control" id="sensorName" type="text" placeholder="Sensor Name" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Moisture Threshold (%):</label>
+                        <input class="form-control" id="notificationThreshold" type="text" placeholder="0" />
+                        <small class="form-text text-muted">
+                            Only takes effect on a pump whose Trigger is set to "Sensor Threshold" and is
+                            assigned to this sensor — configure that under
+                            <a asp-controller="WateringView" asp-action="Index">Settings &rarr; Watering</a>.
+                        </small>
+                    </div>
+                    <hr />
+                    <div class="form-group">
+                        <label class="control-label">Protocol:</label>
+                        <select class="form-control" id="sensorProtocol" onchange="OnSensorProtocolChange()">
+                            <option value="None">None</option>
+                            <option value="ZWave">Z-Wave</option>
+                            <option value="Zigbee">Zigbee</option>
+                        </select>
+                    </div>
+                    <!-- Z-Wave Binding -->
+                    <div id="zwaveBindingSection" style="display:none">
+                        <h6 class="text-secondary">Z-Wave Binding</h6>
+                        <div class="form-group">
+                            <label class="control-label">Z-Wave Node ID:</label>
+                            <input class="form-control" id="zWaveNodeId" type="number" min="0" placeholder="0 (unset)" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">MQTT Topic:</label>
+                            <input class="form-control" id="zWaveMqttTopic" type="text" placeholder="zwave/{nodeId}/sensorMultilevel/Soil moisture/value" />
+                        </div>
+                    </div>
+                    <!-- Zigbee Binding -->
+                    <div id="zigbeeBindingSection" style="display:none">
+                        <h6 class="text-secondary">Zigbee Binding</h6>
+                        <div class="form-group">
+                            <label class="control-label">Zigbee Node ID:</label>
+                            <input class="form-control" id="zigbeeNodeId" type="number" min="0" placeholder="0 (unset)" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">MQTT Topic:</label>
+                            <input class="form-control" id="zigbeeMqttTopic" type="text" placeholder="zigbee2mqtt/{deviceId}" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="m-0 mb-2 w-100 font-weight-bold text-primary" id="sensorstatus">&nbsp</p>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onClick="SaveSensorConfig()" class="btn btn-save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/gui/configsensormodal.js"></script>

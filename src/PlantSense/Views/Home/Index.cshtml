@@ -1,0 +1,152 @@
+﻿@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row">
+        <!--  Time -->
+        <div class="col-6 col-md-6 col-xl-2 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Time
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800 stat-tile-value" id="time"></div>
+                        </div>
+                        <div class="col-auto d-none d-sm-block">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Air Temperature -->
+        <div class="col-6 col-md-6 col-xl-2 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Air Temp
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="temperature">--</div>
+                            <div class="text-xs text-gray-600 text-truncate" id="temperatureSource"></div>
+                        </div>
+                        <div class="col-auto d-none d-sm-block">
+                            <i class="fas fa-thermometer-half fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Air Humidity -->
+        <div class="col-6 col-md-6 col-xl-2 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Air Humidity
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="humidity">--</div>
+                            <div class="text-xs text-gray-600 text-truncate" id="humiditySource"></div>
+                        </div>
+                        <div class="col-auto d-none d-sm-block">
+                            <i class="fas fa-water fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pump Status -->
+        <div class="col-6 col-md-6 col-xl-2 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Pumps
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pumpStatusSummary">--</div>
+                            <div class="text-xs text-gray-600 text-truncate" id="pumpEnabledDetail"></div>
+                        </div>
+                        <div class="col-auto d-none d-sm-block">
+                            <i class="fas fa-faucet fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Watering -->
+        <div class="col-6 col-md-6 col-xl-2 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Next Watering
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800 text-truncate" id="nextWatering">--</div>
+                            <div class="text-xs text-gray-600 text-truncate" id="nextWateringDetail"></div>
+                        </div>
+                        <div class="col-auto d-none d-sm-block">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Row -->
+    <!-- Sensors Row 1-->
+    <div class="row">
+        <partial name="Dashboard/_SensorsRow1" />
+    </div>
+
+    <!-- Sensors Row 2-->
+    <div class="row">
+        <partial name="Dashboard/_SensorsRow2" />
+    </div>
+    <!-- Sensors Row 3-->
+    <div class="row">
+        <partial name="Dashboard/_SensorsRow3" />
+    </div>
+</div>
+
+<!-- Page level plugins -->
+<script src="vendor/chart.js/Chart.min.js"></script>
+
+<!-- Page level custom scripts -->
+<script src="js/sensors/moistsensors.js"></script>
+<script src="js/sensors/airsensor.js"></script>
+<script src="js/gui/pumpstatuscard.js"></script>
+
+<script>
+    setInterval(myTimer, 1000);
+
+    function myTimer() {
+        const d = new Date();
+        // Short weekday/month and no year keep this readable in a half-width
+        // card on a phone screen; full date is still unambiguous within a year.
+        const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+        const timeOptions = { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+
+        document.getElementById("time").textContent =
+            d.toLocaleDateString('en-US', dateOptions) + ', ' + d.toLocaleTimeString('en-US', timeOptions);
+    }
+</script>

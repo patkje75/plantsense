@@ -1,0 +1,83 @@
+@model IEnumerable<PlantSense.Models.Log>
+@{
+    ViewBag.Title = "Logs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool showingSystem = ViewBag.ShowingSystem == true;
+}
+
+@section styles {
+    <link href="vendor/datatables/DataTables-1.11.3/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+}
+
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Logs</h1>
+    <p class="mb-4">Application, device, and system logs.</p>
+
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item">
+            <a class="nav-link @(showingSystem ? "" : "active")" asp-controller="Logging" asp-action="Index">Application</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(showingSystem ? "active" : "")" asp-controller="Logging" asp-action="Index" asp-route-log="sys">System (framework)</a>
+        </li>
+    </ul>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap">
+            <h6 class="m-0 font-weight-bold text-primary">@(showingSystem ? "System log" : "Application log")</h6>
+            @if (!showingSystem)
+            {
+                <div class="btn-group btn-group-sm" id="sourceFilter" role="group">
+                    <button type="button" class="btn btn-outline-primary active" data-source="">All</button>
+                    <button type="button" class="btn btn-outline-primary" data-source="App">App</button>
+                    <button type="button" class="btn btn-outline-primary" data-source="ZWave">Z-Wave</button>
+                    <button type="button" class="btn btn-outline-primary" data-source="Zigbee">Zigbee</button>
+                    <button type="button" class="btn btn-outline-primary" data-source="Watering">Watering</button>
+                    <button type="button" class="btn btn-outline-primary" data-source="System">System</button>
+                </div>
+            }
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Log</th>
+                            <th>Message</th>
+                            <th>Source</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Time</th>
+                            <th>Log</th>
+                            <th>Message</th>
+                            <th>Source</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        @{
+                            foreach (Log log in Model)
+                            {
+                                <tr>
+                                    <td>@log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                                    <td>@log.Level</td>
+                                    <td>@log.DisplayMessage</td>
+                                    <td>@log.Source</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="vendor/datatables/datatables.js"></script>
+    <script src="vendor/datatables/DataTables-1.11.3/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/js/gui/logdatatable.js"></script>
+}

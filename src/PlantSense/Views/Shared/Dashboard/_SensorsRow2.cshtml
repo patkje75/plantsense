@@ -1,0 +1,108 @@
+﻿<!-- Pie Chart Sensor 3 -->
+<div class="col-12 col-md-6 col-lg-5 col-xl-4">
+    <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary" id="sensor3">Sensor 3</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink3"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                     aria-labelledby="dropdownMenuLink3">
+                    <div class="dropdown-header">Action:</div>
+                    <a class="dropdown-item" id="configsensor3" onclick="LoadSensorSettings()" data-backdrop="static" data-keyboard="false" data-toggle="modal" data-target="#sensorSettingsModal" href="#">Config Sensor</a>
+                    <a class="dropdown-item" href="#">View sensor data</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="chart-pie pt-4 pb-2">
+                <canvas id="sensor3PieChart"></canvas>
+            </div>
+            <div class="mt-4 text-center small">
+                <span class="mr-2">
+                    <i class="fas fa-tint" style="color: #52b788"></i> Moisture: <span id="sensor3MoistValue">--</span>
+                </span>
+                <span class="mr-2">
+                    <i class="fas fa-sun" style="color: #e9c46a"></i> Dry: <span id="sensor3DryValue">--</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pie Chart Sensor 4-->
+<div class="col-12 col-md-6 col-lg-5 col-xl-4">
+    <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary" id="sensor4">Sensor 4</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink4"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                     aria-labelledby="dropdownMenuLink4">
+                    <div class="dropdown-header">Action:</div>
+                    <a class="dropdown-item" id="configsensor4" onclick="LoadSensorSettings()" data-backdrop="static" data-keyboard="false" data-toggle="modal" data-target="#sensorSettingsModal" href="#">Config Sensor</a>
+                    <a class="dropdown-item" href="#">View sensor data</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="chart-pie pt-4 pb-2">
+                <canvas id="sensor4PieChart"></canvas>
+            </div>
+            <div class="mt-4 text-center small">
+                <span class="mr-2">
+                    <i class="fas fa-tint" style="color: #52b788"></i> Moisture: <span id="sensor4MoistValue">--</span>
+                </span>
+                <span class="mr-2">
+                    <i class="fas fa-sun" style="color: #e9c46a"></i> Dry: <span id="sensor4DryValue">--</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pie Chart Sensor 5-->
+<div class="col-12 col-md-6 col-lg-5 col-xl-4">
+    <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary" id="sensor5">Sensor 5</h6>
+            <div class="dropdown no-arrow">
+                <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink5"
+                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                </a>
+                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                     aria-labelledby="dropdownMenuLink5">
+                    <div class="dropdown-header">Action:</div>
+                    <a class="dropdown-item" id="configsensor5" onclick="LoadSensorSettings()" data-backdrop="static" data-keyboard="false" data-toggle="modal" data-target="#sensorSettingsModal" href="#">Config Sensor</a>
+                    <a class="dropdown-item" href="#">View sensor data</a>
+                </div>
+            </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="chart-pie pt-4 pb-2">
+                <canvas id="sensor5PieChart"></canvas>
+            </div>
+            <div class="mt-4 text-center small">
+                <span class="mr-2">
+                    <i class="fas fa-tint" style="color: #52b788"></i> Moisture: <span id="sensor5MoistValue">--</span>
+                </span>
+                <span class="mr-2">
+                    <i class="fas fa-sun" style="color: #e9c46a"></i> Dry: <span id="sensor5DryValue">--</span>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<partial name="Dashboard/_SensorSettings" />

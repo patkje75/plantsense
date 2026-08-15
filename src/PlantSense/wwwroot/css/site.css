@@ -1,0 +1,435 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+    color: #2d6a4f;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+    font-size: 1rem;
+    line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px; /* Vertically center the text there */
+}
+
+/* ============================================================
+   Living Canopy — Nature Theme Overrides
+   ============================================================ */
+
+/* Block A — Root token overrides + body background */
+:root {
+    --primary:   #2d6a4f;
+    --success:   #52b788;
+    --danger:    #b5651d;
+    --warning:   #e9c46a;
+    --info:      #48cae4;
+    --secondary: #6c757d;
+    --light:     #f4f6f0;
+    --dark:      #3d4a3e;
+}
+body { background-color: #f4f6f0; color: #3d4a3e; }
+
+/* Block B — Sidebar */
+.bg-gradient-primary {
+    background-color: #1b4332 !important;
+    background-image: linear-gradient(180deg, #1b4332 0%, #081c15 100%) !important;
+}
+.sidebar-brand { border-left: 4px solid #52b788; }
+.sidebar .sidebar-divider { border-top-color: rgba(255,255,255,0.08) !important; }
+.sidebar .sidebar-heading { color: rgba(116,198,157,0.65) !important; }
+.sidebar .nav-link { transition: background-color 0.2s ease, border-left-color 0.15s ease; border-left: 3px solid transparent; }
+.sidebar .nav-item.active .nav-link,
+.sidebar .nav-item .nav-link:hover {
+    background-color: rgba(82,183,136,0.15) !important;
+    border-left: 3px solid #52b788;
+}
+.collapse-inner { background-color: #f4f6f0 !important; border: 1px solid #d8f3dc !important; }
+.collapse-header { color: #40916c !important; font-weight: 700 !important; }
+.collapse-item:hover { background-color: #d8f3dc !important; color: #2d6a4f !important; }
+
+/* Block C — Cards */
+.card {
+    background: linear-gradient(135deg, #ffffff 85%, #f4f6f0 100%);
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(45,106,79,0.10) !important;
+    animation: card-emerge 0.35s ease-out both;
+}
+@keyframes card-emerge {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .card { animation: none; } }
+.card-header { background-color: #f4f6f0 !important; border-bottom: 1px solid #d8f3dc !important; }
+
+/* Block D — Color class overrides */
+.text-primary { color: #2d6a4f !important; }
+.text-success { color: #40916c !important; }
+.text-danger  { color: #b5651d !important; }
+.text-info    { color: #48cae4 !important; }
+.bg-primary   { background-color: #2d6a4f !important; }
+.bg-success   { background-color: #52b788 !important; }
+.border-left-primary { border-left: 0.25rem solid #2d6a4f !important; }
+.border-left-success { border-left: 0.25rem solid #52b788 !important; }
+.border-left-info    { border-left: 0.25rem solid #48cae4 !important; }
+
+/* Block E — Buttons */
+.btn-primary { background-color: #2d6a4f; border-color: #1b4332; color: #fff; }
+.btn-primary:hover, .btn-primary:focus { background-color: #1b4332; border-color: #081c15; }
+.btn-success { background-color: #40916c; border-color: #2d6a4f; color: #fff; }
+.btn-success:hover, .btn-success:focus { background-color: #2d6a4f; border-color: #1b4332; }
+.btn-danger  { background-color: #b5651d; border-color: #8b4513; color: #fff; }
+.btn-danger:hover, .btn-danger:focus { background-color: #8b4513; border-color: #6b4f3a; }
+
+.btn-water {
+    background-color: #40916c; border-color: #2d6a4f; color: #fff;
+    font-weight: 600; border-radius: 4px;
+    transition: background-color 0.15s ease, transform 0.08s ease;
+}
+.btn-water:hover { background-color: #2d6a4f; border-color: #1b4332; color: #fff; }
+.btn-water:active { transform: scale(0.97); }
+
+.btn-stop {
+    background-color: #b5651d; border-color: #8b4513; color: #fff;
+    font-weight: 700; transition: background-color 0.15s ease, transform 0.08s ease;
+}
+.btn-stop:hover { background-color: #8b4513; border-color: #6b4f3a; color: #fff; }
+.btn-stop:active { transform: scale(0.97); }
+
+.btn-config {
+    background-color: #e8f5ee; border: 1px solid #40916c; color: #2d6a4f;
+    font-weight: 600; transition: background-color 0.15s ease, color 0.15s ease;
+}
+.btn-config:hover { background-color: #2d6a4f; color: #fff; border-color: #1b4332; }
+.btn-config:active { transform: scale(0.97); }
+
+.btn-save { background-color: #2d6a4f; border-color: #1b4332; color: #fff; font-weight: 700; }
+.btn-save:hover { background-color: #1b4332; }
+
+/* Block F — Form controls */
+.form-control:focus, .custom-select:focus {
+    border-color: #74c69d;
+    box-shadow: 0 0 0 0.2rem rgba(82,183,136,0.25);
+    outline: 0;
+}
+.custom-control-input:checked ~ .custom-control-label::before {
+    border-color: #40916c; background-color: #40916c;
+}
+.custom-control-input:focus ~ .custom-control-label::before {
+    box-shadow: 0 0 0 0.2rem rgba(64,145,108,0.35);
+}
+.custom-control-input:focus:not(:checked) ~ .custom-control-label::before { border-color: #74c69d; }
+.custom-control-label::before { transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+
+/* Block G — DataTable (Watering) */
+#pumpDataTable thead th {
+    background-color: #2d6a4f !important; color: #fff !important;
+    font-weight: 600; font-size: 0.78rem; letter-spacing: 0.04em;
+    text-transform: uppercase; border-bottom: 2px solid #1b4332 !important; border-top: none !important;
+}
+#pumpDataTable tbody tr:hover > td { background-color: #f4f6f0 !important; }
+table.dataTable thead .sorting:before,
+table.dataTable thead .sorting_asc:before,
+table.dataTable thead .sorting_desc:before { color: rgba(116,198,157,0.8); }
+.badge-enabled {
+    display: inline-block; padding: 0.25em 0.5em;
+    background-color: #d8f3dc; color: #2d6a4f; font-weight: 700;
+    border: 1px solid #74c69d; border-radius: 4px; font-size: 0.75rem;
+}
+.badge-disabled {
+    display: inline-block; padding: 0.25em 0.5em;
+    background-color: #f4f0e8; color: #6b4f3a;
+    border: 1px solid #c9b89a; border-radius: 4px; font-size: 0.75rem;
+}
+
+/* Block H — Pump running indicator (replaces GIF) */
+.pump-running-dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; background-color: #52b788;
+    animation: pulse-grow 1.2s ease-in-out infinite;
+    vertical-align: middle; margin-left: 4px;
+}
+@keyframes pulse-grow {
+    0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(82,183,136,0.6); }
+    70%  { transform: scale(1.1);  box-shadow: 0 0 0 8px rgba(82,183,136,0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(82,183,136,0); }
+}
+@media (prefers-reduced-motion: reduce) { .pump-running-dot { animation: none; } }
+
+/* Block I — Modals */
+.modal-backdrop.show { background-color: #1b4332; opacity: 0.55; }
+.modal-content { border-radius: 6px; }
+.modal-header { border-bottom-color: #d8f3dc; }
+.modal-footer { border-top-color: #d8f3dc; }
+
+/* Block J — Footer + misc */
+.sticky-footer { background-color: #f4f6f0 !important; border-top: 1px solid #d8f3dc; }
+.sticky-footer .copyright { color: #6c757d; font-size: 0.85rem; }
+.scroll-to-top { background-color: #2d6a4f; }
+.scroll-to-top:hover { background-color: #1b4332; }
+
+/* Block K — Topbar */
+.topbar { border-bottom: 2px solid #d8f3dc !important; background-color: #fff !important; }
+.topbar .navbar-search .form-control { border-color: #d8f3dc; }
+.topbar .navbar-search .btn { background-color: #2d6a4f; border-color: #1b4332; color: #fff; }
+.topbar .navbar-search .btn:hover { background-color: #1b4332; }
+.topbar-divider { border-right-color: #d8f3dc !important; }
+
+/* Block L — Sidebar lush canopy polish */
+.sidebar .sidebar-brand-text { letter-spacing: 0.08em; font-weight: 800; }
+.sidebar .nav-item .nav-link span { letter-spacing: 0.03em; }
+.sidebar .nav-link i { color: rgba(116,198,157,0.75); transition: color 0.2s ease; }
+.sidebar .nav-item.active .nav-link i,
+.sidebar .nav-item .nav-link:hover i { color: #74c69d; }
+
+/* Block N — Dropdown items */
+.dropdown-item { color: #2d6a4f; }
+.dropdown-item:hover,
+.dropdown-item:focus  { color: #1b4332; background-color: #d8f3dc; }
+.dropdown-item:active { color: #fff;    background-color: #2d6a4f; }
+
+/* Block M — Bootstrap Pagination + DataTables */
+.page-link { color: #2d6a4f; }
+.page-link:hover { color: #1b4332; background-color: #d8f3dc; border-color: #d8f3dc; }
+.page-item.active .page-link {
+    background-color: #2d6a4f; border-color: #1b4332; color: #fff;
+}
+.page-item.active .page-link:focus { box-shadow: 0 0 0 0.2rem rgba(45,106,79,0.35); }
+.page-item.disabled .page-link { color: #6c757d; }
+
+/* ============================================================
+   Block O — Mobile / phone polish
+   ============================================================ */
+
+/* Prevent iOS Safari from auto-zooming the page when a form field is
+   focused (it does this whenever the computed font-size is under 16px,
+   which the 14px html base font-size in this theme triggers by default). */
+@media (max-width: 767.98px) {
+    .form-control,
+    .custom-select,
+    select.form-control,
+    textarea.form-control,
+    input.form-control {
+        font-size: 16px;
+    }
+}
+
+/* Comfortable one-handed tap targets. iOS/Android guidance is ~44px;
+   the default Bootstrap 4 button (~34-38px tall) is a little tight on a phone. */
+@media (max-width: 767.98px) {
+    .btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    .btn-sm {
+        min-height: 38px;
+    }
+    /* Icon-only triggers (sensor-card kebab menu, sidebar toggle) aren't
+       full buttons — don't force their height, just give them generous
+       padding so the tappable area is still comfortable. */
+    .dropdown-toggle,
+    #sidebarToggleTop {
+        padding: 0.6rem;
+    }
+    /* Switch/checkbox labels: enlarge the clickable row without blowing up
+       the visual size of the little indicator itself. */
+    .custom-control {
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    .custom-control-label {
+        padding-left: 0.25rem;
+    }
+}
+
+/* Dashboard stat tiles: keep the live clock readable in a half-width card
+   on a narrow phone instead of wrapping across 3 lines. */
+@media (max-width: 575.98px) {
+    #time.stat-tile-value {
+        font-size: 1rem;
+    }
+}
+
+/* Watering / Devices tables: on a phone, a table with 6-11 columns either
+   overflows or forces horizontal scrolling to reach the last column (where
+   the manual-watering buttons live). Below md, turn each row into a
+   labelled, stacked card instead — same <td> ids/classes JS already
+   depends on, just re-laid-out. */
+@media (max-width: 767.98px) {
+    #pumpDataTable,
+    #configuredDevicesTable,
+    #discoveredDevicesTable {
+        border: 0 !important;
+    }
+
+    #pumpDataTable thead,
+    #configuredDevicesTable thead,
+    #discoveredDevicesTable thead {
+        display: none;
+    }
+
+    #pumpDataTable tbody tr,
+    #configuredDevicesTable tbody tr,
+    #discoveredDevicesTable tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #d8f3dc;
+        border-radius: 6px;
+        padding: 0.25rem 0.9rem;
+        background-color: #fff;
+    }
+
+    #pumpDataTable tbody td,
+    #configuredDevicesTable tbody td,
+    #discoveredDevicesTable tbody td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        text-align: right;
+        border: none !important;
+        border-bottom: 1px solid #f4f6f0 !important;
+        padding: 0.6rem 0;
+    }
+
+    #pumpDataTable tbody td:last-child,
+    #configuredDevicesTable tbody td:last-child,
+    #discoveredDevicesTable tbody td:last-child {
+        border-bottom: none !important;
+    }
+
+    #pumpDataTable tbody td::before,
+    #configuredDevicesTable tbody td::before,
+    #discoveredDevicesTable tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.72rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #40916c;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    /* Cells whose content is buttons (Config / Manual watering / row actions)
+       read better as a full-width block below the label than squeezed into
+       a right-aligned flex row. */
+    #pumpDataTable tbody td.ps-cell-actions,
+    #configuredDevicesTable tbody td.ps-cell-actions,
+    #discoveredDevicesTable tbody td.ps-cell-actions {
+        display: block;
+        text-align: left;
+    }
+    #pumpDataTable tbody td.ps-cell-actions::before,
+    #configuredDevicesTable tbody td.ps-cell-actions::before,
+    #discoveredDevicesTable tbody td.ps-cell-actions::before {
+        display: block;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Manual watering buttons: let the group wrap into a comfortable 2x2
+       grid instead of squeezing 5 buttons onto one line. Overriding the
+       Bootstrap .btn-group joined-button styling (negative margins, square
+       inner corners) so the wrapped buttons look like a clean grid. */
+    #pumpDataTable .btn-toolbar,
+    #pumpDataTable .btn-group {
+        flex-wrap: wrap;
+    }
+    #pumpDataTable .btn-group .btn {
+        flex: 1 1 calc(50% - 0.5rem);
+        margin: 0.25rem !important;
+        border-radius: 4px !important;
+    }
+    #pumpDataTable .btn-group .btn-stop {
+        flex-basis: 100%;
+    }
+}
+
+/* Docs page: copy-to-clipboard button on <pre> code blocks.
+   .docs-code-wrap is applied to the <pre> itself (not a separate wrapper), so the
+   button — appended as its last child — positions relative to it directly. */
+.docs-code-wrap {
+    position: relative;
+    padding-right: 4.5rem; /* keep long lines clear of the button */
+}
+.docs-code-wrap .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    opacity: 0.55;
+}
+.docs-code-wrap .copy-btn:hover,
+.docs-code-wrap .copy-btn:focus {
+    opacity: 1;
+}
+.docs-code-wrap pre {
+    padding-right: 4.5rem; /* keep long lines clear of the button */
+}

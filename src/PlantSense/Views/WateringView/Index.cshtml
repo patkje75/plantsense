@@ -1,0 +1,238 @@
+@model IEnumerable<PlantSense.Models.SolutionSettings>
+@{
+    ViewBag.Title = "Watering";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string translateDays(int i, string time, PumpTriggers trigger) {
+        if (trigger == PumpTriggers.Time)
+        {
+            string[] days = new string[@Model.First().lstpumps[i].waterSchedule.Days.Count];
+            int count = 0;
+            int[] schedule = @Model.First().lstpumps[i].waterSchedule.Days.ToArray();
+
+            for (int s = 0; s <= schedule.Length - 1; s++)
+            {
+                switch (schedule[s])
+                {
+                    case 0: days[count++] = "Su"; break;
+                    case 1: days[count++] = "Mo"; break;
+                    case 2: days[count++] = "Tu"; break;
+                    case 3: days[count++] = "We"; break;
+                    case 4: days[count++] = "Th"; break;
+                    case 5: days[count++] = "Fr"; break;
+                    case 6: days[count++] = "Sa"; break;
+                    default: days[count++] = "**"; break;
+                }
+            }
+
+            return $" {time} - {String.Join(",", days)}";
+        }
+        else
+        {
+            return "None";
+        }
+    }
+
+    string setNextRun(Pump pump)
+    {
+        if (pump.trigger == PumpTriggers.Threshold)
+        {
+            if (pump.enabled)
+            {
+                return $"Moist level under {@Model.First().lstsensors[pump.associatedSensorId].notificationThreshold}";
+            }
+            else
+            {
+                return "None";
+            }
+        }
+        else if (pump.trigger == PumpTriggers.Time)
+        {
+            return GetNextRun(pump).nextRun;
+        }
+        else
+        {
+            return "None"; // Manual
+        }
+    }
+
+    string getAssociatedSensor(int i)
+    {
+        if (@Model.First().lstpumps[i].trigger == PumpTriggers.Time
+            || @Model.First().lstpumps[i].trigger == PumpTriggers.Manual
+            || !(@Model.First().lstpumps[i].enabled))
+        {
+            return "None";
+        }
+        else
+        {
+            return @Model.First().lstsensors[Model.First().lstpumps[i].associatedSensorId].name;
+        }
+    }
+
+    Pump GetNextRun(Pump pump)
+    {
+        string triggerTime = pump.waterSchedule.Time;
+        DateTime date = DateTime.Now;
+        var nextRunDay = 0;
+        DateTime nextRundate;
+        DateTime nextRunTime;
+
+        int index = pump.waterSchedule.Days.FindIndex(s => s == 0);
+        if (index != -1)
+            pump.waterSchedule.Days[index] = 7;
+
+        int intToday = (int)date.DayOfWeek;
+        if (intToday == 0)
+        {
+            intToday = 7;
+        }
+        var monday = DateTime.Today.AddDays(-intToday + (int)DayOfWeek.Monday);
+
+        nextRunDay = pump.waterSchedule.Days.FirstOrDefault(x => x >= intToday);
+
+        if (nextRunDay == 0)
+        {
+            var firstRunDayOfWeek = pump.waterSchedule.Days.OrderBy(i => i).FirstOrDefault();
+            nextRundate = monday.AddDays(firstRunDayOfWeek + 6);
+        }
+        else if (nextRunDay > intToday)
+        {
+            nextRundate = date.AddDays(nextRunDay - intToday);
+        }
+        else
+        {
+            nextRunTime = DateTime.Parse(date.ToString("yyyy-MM-dd") + " " + triggerTime);
+            if (DateTime.Compare(DateTime.Now, nextRunTime) >= 0)
+            {
+                List<int> daySorted = pump.waterSchedule.Days.OrderBy(i => i).ToList();
+                index = daySorted.FindIndex(s => s == nextRunDay);
+
+                if (intToday != daySorted.LastOrDefault())
+                {
+                    nextRundate = date.AddDays(daySorted[index + 1] - intToday);
+                }
+                else
+                {
+                    var firstRunDayOfWeek = pump.waterSchedule.Days.OrderBy(i => i).FirstOrDefault();
+                    nextRundate = monday.AddDays(firstRunDayOfWeek + 6);
+                }
+            }
+            else
+            {
+                nextRundate = date;
+            }
+        }
+
+        nextRunTime = DateTime.Parse(nextRundate.ToString("yyyy-MM-dd") + " " + triggerTime);
+        pump.nextRun = nextRunTime.ToString("yyyy-MM-dd HH:mm");
+
+        index = pump.waterSchedule.Days.FindIndex(s => s == 7);
+        if (index != -1)
+            pump.waterSchedule.Days[index] = 0;
+
+        return pump;
+    }
+}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Watering</h1>
+    <p class="mb-4">
+        Pump overview and config.
+    </p>
+
+    <!-- Pump Behavior -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Pump Behavior</h6>
+        </div>
+        <div class="card-body">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="allowConcurrentPumpsSwitch"
+                       onchange="SaveWateringOptions()" @(Model.First().allowConcurrentPumps ? "checked" : "") />
+                <label class="custom-control-label" for="allowConcurrentPumpsSwitch">Allow pumps to run simultaneously</label>
+            </div>
+            <small class="form-text text-muted">
+                When off (default), pumps scheduled to trigger at the same time run one after another
+                instead of at once — useful if your water supply or power can't handle multiple pumps
+                running together. Turn this on to let colliding pumps run in parallel.
+            </small>
+            <p class="m-0 font-weight-bold text-primary small mt-2" id="wateringOptionsStatus">&nbsp;</p>
+        </div>
+    </div>
+
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Watering</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="pumpDataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Pump Id</th>
+                            <th>Pump Name</th>
+                            <th>Enabled</th>
+                            <th>Trigger</th>
+                            <th>Associated Sensor</th>
+                            <th>Schedule</th>
+                            <th>Next Run</th>
+                            <th>Last Run</th>
+                            <th>Edit</th>
+                            <th>Manual</th>
+                            <th>Pump Running</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            for (int i = 0; i < Model.First().lstpumps.Count; i++)
+                            {
+                                <tr>
+                                    <td id="@("pid" + i)" data-label="Pump Id">@i</td>
+                                    <td id="@("pname" + i)" data-label="Pump Name">@Model.First().lstpumps[i].name (@(Model.First().lstpumps[i].pinout == 0 ? "No pin" : "GPIO " + Model.First().lstpumps[i].pinout))</td>
+                                    <td id="@("penabled" + i)" data-label="Enabled">@Model.First().lstpumps[i].enabled</td>
+                                    <td id="@("ptrigger" + i)" data-label="Trigger">@Model.First().lstpumps[i].trigger</td>
+                                    <td id="@("passoc" + i)" data-label="Associated Sensor">@getAssociatedSensor(i)</td>
+                                    <td id="@("psched" + i)" data-label="Schedule">@translateDays(i, @Model.First().lstpumps[i].waterSchedule.Time, @Model.First().lstpumps[i].trigger)</td>
+                                    <td id="@("pnextrun" + i)" data-label="Next Run">@setNextRun(@Model.First().lstpumps[i])</td>
+                                    <td id="@("plastrun" + i)" data-label="Last Run">@Model.First().lstpumps[i].lastRun</td>
+                                    <td data-label="Edit" class="ps-cell-actions">
+                                        <button Id="@("pump" + i)" type="button" class="btn btn-config" data-toggle="modal" data-target="#WateringSettingsModal" data-backdrop="static" data-keyboard="false" onClick="ConfigPump(this.id)" href="#">Config</button>
+                                    </td>
+                                    <td data-label="Manual" class="ps-cell-actions">
+                                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                                            <div class="btn-group mr-2" role="group" aria-label="First group">
+                                                <button type="button" class="btn btn-water" Id="@(i + "-1")" autocomplete="off" onClick="ManualPumpButton(this.id)" @(Model.First().lstpumps[i].enabled ? "" : "disabled")>1 min</button>
+                                                <button type="button" class="btn btn-water" Id="@(i + "-2")" autocomplete="off" onClick="ManualPumpButton(this.id)" @(Model.First().lstpumps[i].enabled ? "" : "disabled")>2 min</button>
+                                                <button type="button" class="btn btn-water" Id="@(i + "-5")" autocomplete="off" onClick="ManualPumpButton(this.id)" @(Model.First().lstpumps[i].enabled ? "" : "disabled")>5 min</button>
+                                                <button type="button" class="btn btn-water" Id="@(i + "-10")" autocomplete="off" onClick="ManualPumpButton(this.id)" @(Model.First().lstpumps[i].enabled ? "" : "disabled")>10 min</button>
+                                                <button type="button" class="btn btn-stop" Id="@(i + "-stop")" autocomplete="off" onClick="StopPumpButton(this.id)" hidden>Stop</button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span id="@(i + "-countdown")" class="text-info small" hidden></span>
+                                        </div>
+                                    </td>
+                                    <td data-label="Pump Running">
+                                        <span Id="@("runningTxt" + i)">No</span>
+                                        <span Id="@("runningImg" + i)" class="pump-running-dot" hidden></span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page level plugins -->
+<script src="~/vendor/datatables/datatables.js" defer></script>
+<script src="~/vendor/datatables/DataTables-1.11.3/js/dataTables.bootstrap4.min.js"></script>
+
+<!-- Page level custom scripts -->
+<partial name="_WateringSettings" />

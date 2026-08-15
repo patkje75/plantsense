@@ -1,0 +1,181 @@
+@{
+    ViewBag.Title = "Devices";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Reflects the address actually used to reach this page — lets the bridge cards link
+    // straight to zigbee2mqtt / Z-Wave JS UI's own web UI without the user retyping the host.
+    var host = Context.Request.Host.Host;
+}
+
+<div class="container-fluid">
+
+    <h1 class="h3 mb-2 text-gray-800">Devices</h1>
+    <p class="mb-4">
+        Zigbee and Z-Wave devices connected through the MQTT bridges.
+        See the <a asp-controller="Docs" asp-action="Index">documentation</a> for setup instructions.
+    </p>
+
+    <!-- Status Row -->
+    <div class="row">
+
+        <!-- Z-Wave Bridge Status -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-start">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Z-Wave Bridge</div>
+                            <div class="h5 mb-1 font-weight-bold text-gray-800">
+                                <span id="zwaveStatusBadge" class="badge badge-secondary">Unknown</span>
+                            </div>
+                            <div class="text-xs text-gray-600"><span id="zwaveBroker"></span></div>
+                            <div class="text-xs text-gray-600"><span id="zwaveDetail"></span></div>
+                            <div class="text-xs text-gray-600"><span id="zwaveTopics"></span></div>
+                            <div class="small text-muted mt-2" id="zwaveHint" style="display:none">
+                                PlantSense doesn't talk to Z-Wave radios directly — it reads values that
+                                <em>Z-Wave JS UI</em> publishes to an MQTT broker. "Connected" refers to the
+                                broker; values flow once Z-Wave JS UI's MQTT gateway is publishing. If you
+                                don't use Z-Wave, ignore this card.
+                                <div class="mt-1">
+                                    <a asp-controller="Docs" asp-action="Index" asp-fragment="zwave">Z-Wave setup guide</a>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="http://@(host):8091" target="_blank" rel="noopener" class="small">
+                                    Open Z-Wave JS UI <i class="fas fa-external-link-alt fa-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-broadcast-tower fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zigbee Bridge Status -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-start">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Zigbee Bridge</div>
+                            <div class="h5 mb-1 font-weight-bold text-gray-800">
+                                <span id="zigbeeStatusBadge" class="badge badge-secondary">Unknown</span>
+                            </div>
+                            <div class="text-xs text-gray-600"><span id="zigbeeBroker"></span></div>
+                            <div class="text-xs text-gray-600"><span id="zigbeeDetail"></span></div>
+                            <div class="text-xs text-gray-600"><span id="zigbeeTopics"></span></div>
+                            <div class="small text-muted mt-2" id="zigbeeHint" style="display:none">
+                                PlantSense doesn't talk to Zigbee radios directly — it reads values that
+                                <em>zigbee2mqtt</em> (or deCONZ) publishes to an MQTT broker. "Connected"
+                                refers to the broker; values flow once the Zigbee bridge is running and
+                                publishing. If you don't use Zigbee, ignore this card.
+                                <div class="mt-1">
+                                    <a asp-controller="Docs" asp-action="Index" asp-fragment="zigbee">Zigbee setup guide</a>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="http://@(host):8081" target="_blank" rel="noopener" class="small">
+                                    Open zigbee2mqtt <i class="fas fa-external-link-alt fa-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-wifi fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adapters & HAT -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-start">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Adapters &amp; HAT</div>
+                            <div class="text-xs text-gray-600" id="adapterMessage"></div>
+                            <ul class="list-unstyled mb-0 text-xs text-gray-800" id="adapterList"></ul>
+                            <div class="text-xs text-gray-600 mt-1" id="hatInfo"></div>
+                            <div class="small text-muted mt-2" id="adapterHint" style="display:none">
+                                On the Raspberry Pi this card lists detected USB adapters and HAT boards.
+                                Note: UART HAT boards (Aeotec Z-Pi 7, RaspBee II)
+                                appear as <code>/dev/ttyAMA0</code> without a vendor name.
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fab fa-usb fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configured Devices -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Configured devices</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="configuredDevicesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Slot</th>
+                            <th>Name</th>
+                            <th>Protocol</th>
+                            <th>MQTT Topic</th>
+                            <th>Last value</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="configuredDevicesBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discovered Devices -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Discovered devices</h6>
+            <button class="btn btn-sm btn-primary" onclick="RefreshDiscovery()">
+                <i class="fas fa-sync fa-sm"></i> Refresh
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="discoveredDevicesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Protocol</th>
+                            <th>Name</th>
+                            <th>Vendor / Model</th>
+                            <th>Type</th>
+                            <th>Last seen</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="discoveredDevicesBody"></tbody>
+                </table>
+            </div>
+            <small class="text-muted">
+                Zigbee devices appear automatically after pairing in zigbee2mqtt.
+                Z-Wave nodes appear when "Publish node details" is enabled in Z-Wave JS UI
+                (Settings &rarr; MQTT Gateway). Devices can always be bound manually via a
+                sensor's Edit button.
+            </small>
+        </div>
+    </div>
+
+</div>
+
+<partial name="Dashboard/_SensorSettings" />
+<partial name="Dashboard/_AirSensorSettings" />
+<partial name="Devices/_AssignDeviceModal" />
+
+<script src="~/js/gui/devicespage.js"></script>

@@ -1,0 +1,643 @@
+@{
+    ViewBag.Title = "Docs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Reflects the address actually used to reach this page — pre-fills bridge links and the
+    // Home Assistant snippets below so they're usable as-is instead of needing manual find/replace.
+    var host = Context.Request.Host.Host;
+    var appHostAndPort = Context.Request.Host.Value;
+}
+
+<div class="container-fluid">
+
+    <h1 class="h3 mb-2 text-gray-800">Documentation</h1>
+    <p class="mb-4">
+        How to connect Zigbee and Z-Wave devices, explore the REST API, and integrate with Home Assistant.
+    </p>
+
+    <div class="mb-4">
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#prerequisites">Prerequisites</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#install-bridges">Installing the bridges</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#zigbee">Add a Zigbee device</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#zwave">Add a Z-Wave device</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#pumps">Pumps &amp; GPIO</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#watering-setup">Watering setup walkthrough</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#timedate">Time &amp; date</a>
+        <a class="btn btn-sm btn-outline-primary mr-1" href="#swagger">API &amp; Swagger</a>
+        <a class="btn btn-sm btn-outline-primary" href="#homeassistant">Home Assistant</a>
+    </div>
+
+    <!-- Prerequisites -->
+    <div class="card shadow mb-4" id="prerequisites">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Prerequisites</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                PlantSense does not talk to Zigbee or Z-Wave radios directly. It consumes sensor values
+                from an <strong>MQTT broker</strong> that a protocol bridge publishes to:
+            </p>
+            <ul>
+                <li><strong>MQTT broker</strong> — e.g. <a href="https://mosquitto.org/" target="_blank" rel="noopener">Mosquitto</a>, typically running on the Raspberry Pi itself.</li>
+                <li><strong>Zigbee</strong> — <a href="https://www.zigbee2mqtt.io/" target="_blank" rel="noopener">zigbee2mqtt</a> with a Zigbee USB adapter (Sonoff ZBDongle, ConBee, CC2652, …).</li>
+                <li><strong>Z-Wave</strong> — <a href="https://zwave-js.github.io/zwave-js-ui/" target="_blank" rel="noopener">Z-Wave JS UI</a> with its MQTT gateway enabled and a Z-Wave USB stick or HAT (Aeotec Z-Stick, RaZberry, Z-Pi, …).</li>
+            </ul>
+            <p class="mb-1">
+                PlantSense connects to the broker configured in <code>appsettings.json</code>
+                (default <code>localhost:1883</code> for both protocols):
+            </p>
+<pre class="bg-light p-3 rounded"><code>"ZWave":  { "MqttHost": "localhost", "MqttPort": 1883 },
+"Zigbee": { "MqttHost": "localhost", "MqttPort": 1883, "BaseTopic": "zigbee2mqtt" }</code></pre>
+            <p class="mb-0">
+                Bridge connection status and detected USB adapters/HATs are shown on the
+                <a asp-controller="Devices" asp-action="Index">Devices</a> page.
+            </p>
+        </div>
+    </div>
+
+    <!-- Installing the bridges -->
+    <div class="card shadow mb-4" id="install-bridges">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Installing zigbee2mqtt &amp; Z-Wave JS UI</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                These run alongside PlantSense on the same Pi (or any machine that can reach it) and talk to
+                your radio hardware directly. Install only the one(s) matching your adapter — you don't need both.
+            </p>
+
+            <h6 class="font-weight-bold">MQTT broker (Mosquitto)</h6>
+            <p>Both bridges need a broker to publish to. On the Pi:</p>
+<pre class="bg-light p-3 rounded"><code>sudo apt install -y mosquitto mosquitto-clients
+sudo systemctl enable --now mosquitto</code></pre>
+            <p class="mb-0">
+                Verify it's listening: <code>mosquitto_sub -h localhost -t '#' -v</code> (leave it running, it'll
+                print messages once a bridge starts publishing).
+            </p>
+
+            <h6 class="font-weight-bold mt-4">zigbee2mqtt</h6>
+            <p>
+                Installed directly with Node.js — no Docker needed. Full details in the official
+                <a href="https://www.zigbee2mqtt.io/guide/installation/" target="_blank" rel="noopener">zigbee2mqtt installation guide</a>.
+            </p>
+<pre class="bg-light p-3 rounded"><code># Node.js 22 LTS — check zigbee2mqtt's package.json "engines" field for
+# its current minimum if this doesn't match anymore
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs git make g++ gcc
+node -v   # sanity check — should print v22.x; if it shows something else,
+          # another Node install (nvm, snap, …) is ahead of it on $PATH
+
+# Clone and install
+sudo git clone --depth 1 https://github.com/Koenkk/zigbee2mqtt.git /opt/zigbee2mqtt
+sudo chown -R $USER: /opt/zigbee2mqtt
+cd /opt/zigbee2mqtt
+npm install
+sudo npm install -g pnpm   # needed for zigbee2mqtt's own self-build step below
+cp data/configuration.example.yaml data/configuration.yaml</code></pre>
+            <p class="text-muted small">
+                A git-clone install ships source only, not a prebuilt <code>dist/</code> (the npm/Docker
+                releases include that already) — so the first <code>npm start</code> triggers zigbee2mqtt's
+                own build step, which currently shells out to <code>pnpm</code>. If you see
+                <code>Error: Command failed: pnpm run prepack</code> / <code>pnpm: not found</code>, that's
+                why — the <code>npm install -g pnpm</code> above covers it.
+            </p>
+            <p class="text-muted small">
+                zigbee2mqtt's minimum supported Node version moves over time (currently 22+, see its
+                <a href="https://github.com/Koenkk/zigbee2mqtt/blob/master/package.json" target="_blank" rel="noopener">package.json</a>).
+                An <code>EBADENGINE</code> warning during <code>npm install</code> means the active Node
+                version is outside that range — check <code>node -v</code> first.
+            </p>
+            <p class="text-muted small mb-0">
+                <strong>If <code>node -v</code> doesn't show the version you just installed:</strong> something
+                else on the Pi (nvm, a snap package, or a manual/tarball install under <code>/usr/local/bin</code>)
+                is shadowing it earlier on <code>$PATH</code>. Run <code>type -a node</code> to list every
+                <code>node</code> found and in what order — remove or reorder the one that's winning, then
+                <code>hash -r</code> to clear your shell's cached lookup and check <code>node -v</code> again.
+                If you use nvm, note that the systemd service below won't see it (services don't source shell
+                rc files) — either point <code>ExecStart</code> at nvm's absolute <code>npm</code> path
+                (<code>which npm</code> after <code>nvm use 22</code>), or rely on the nodesource apt package instead.
+            </p>
+            <p class="text-muted small mb-0">
+                <strong>If <code>type -a node</code> shows only one <code>node</code>, but its version is still
+                wrong:</strong> check <code>apt-cache policy nodejs</code>. Two situations are common:
+            </p>
+            <ul class="text-muted small mb-0">
+                <li>
+                    The installed version has no matching repo at all (shows priority 100, source
+                    <code>/var/lib/dpkg/status</code>) — it was installed out-of-band at some point (a
+                    different nodesource channel that's since been reconfigured, a manually downloaded
+                    <code>.deb</code>, etc.) and, since it numerically outranks the 22.x candidates, plain
+                    <code>apt install nodejs</code> refuses to touch it even with <code>--allow-downgrades</code>.
+                    Fix by reconfiguring the repo and installing an explicit version, which sidesteps the
+                    "already newest" check entirely:
+                </li>
+            </ul>
+<pre class="bg-light p-3 rounded"><code>curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt update
+NODEVER=$(apt-cache madison nodejs | awk '/node_22\.x/{print $3; exit}')
+sudo apt install --allow-downgrades -y nodejs=$NODEVER
+node -v</code></pre>
+            <p class="text-muted small mb-0">
+                The nodesource repo config file itself may not be named
+                <code>/etc/apt/sources.list.d/nodesource.list</code> on newer distros (Debian's deb822
+                <code>.sources</code> format) — check <code>ls /etc/apt/sources.list.d/</code> if you need
+                to inspect or remove it directly.
+            </p>
+            <p>
+                Edit <code>/opt/zigbee2mqtt/data/configuration.yaml</code>:
+            </p>
+<pre class="bg-light p-3 rounded"><code>mqtt:
+  server: mqtt://localhost:1883
+
+serial:
+  port: /dev/ttyAMA0    # your adapter's device path — see below
+  adapter: deconz        # your adapter's chipset — see below
+
+frontend:
+  port: 8081</code></pre>
+            <p>
+                <code>serial.port</code> and <code>serial.adapter</code> depend on your hardware (check the
+                <a asp-controller="Devices" asp-action="Index">Devices</a> page's Adapters card for what's detected):
+            </p>
+            <ul>
+                <li><strong>RaspBee II / ConBee (HAT, UART)</strong> — port <code>/dev/ttyAMA0</code>, adapter <code>deconz</code>.</li>
+                <li><strong>Sonoff ZBDongle-E / other Silicon Labs EFR32 (USB)</strong> — port from <code>/dev/serial/by-id/…</code>, adapter <code>ember</code>.</li>
+                <li><strong>Sonoff ZBDongle-P / CC2652 / CC253x (USB, Texas Instruments)</strong> — port from <code>/dev/serial/by-id/…</code>, adapter <code>zstack</code>.</li>
+                <li><strong>ZiGate (USB)</strong> — port from <code>/dev/serial/by-id/…</code>, adapter <code>zigate</code>.</li>
+            </ul>
+            <p>
+                <code>frontend.port</code> is set to <strong>8081</strong> because its default of 8080 collides
+                with PlantSense's own port.
+            </p>
+            <p class="text-muted small mb-0">
+                <strong>RaspBee II / ConBee on UART:</strong> if start-up hangs or fails with a timeout/permission
+                error rather than "no adapter found", the UART is usually shared with something else on the Pi.
+                Run <code>sudo raspi-config</code> &rarr; <em>Interface Options</em> &rarr; <em>Serial Port</em> —
+                answer <strong>No</strong> to enabling a login shell over serial, <strong>Yes</strong> to enabling
+                the serial port hardware, then reboot. Also make sure your user can open the device:
+                <code>groups $USER</code> should list <code>dialout</code> (add it with
+                <code>sudo usermod -aG dialout $USER</code>, then log out/in).
+            </p>
+            <p>Test it starts cleanly, then stop it with Ctrl+C:</p>
+<pre class="bg-light p-3 rounded"><code>npm start</code></pre>
+            <p>
+                Run it as a background service so it survives reboots — replace <code>ubuntu</code> below
+                with the account you're actually logged in as (<code>whoami</code>); a wrong username here
+                fails with <code>status=217/USER</code> when the service tries to start:
+            </p>
+<pre class="bg-light p-3 rounded"><code>sudo tee /etc/systemd/system/zigbee2mqtt.service > /dev/null &lt;&lt;'EOF'
+[Unit]
+Description=zigbee2mqtt
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/npm start
+WorkingDirectory=/opt/zigbee2mqtt
+StandardOutput=inherit
+StandardError=inherit
+Restart=on-failure
+RestartSec=10s
+User=ubuntu
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl enable --now zigbee2mqtt</code></pre>
+            <p class="mb-0">
+                Once running, its own web UI (pairing, device list, logs) is at
+                <a href="http://@(host):8081" target="_blank" rel="noopener"><code>http://@(host):8081</code></a>
+                (assumes the default port from the config above — adjust if you changed
+                <code>frontend.port</code>). Prefer containers? zigbee2mqtt also publishes a
+                Docker image — see the
+                <a href="https://www.zigbee2mqtt.io/guide/installation/02_docker.html" target="_blank" rel="noopener">Docker install guide</a>.
+            </p>
+
+            <h6 class="font-weight-bold mt-4">Z-Wave JS UI</h6>
+            <p>
+                Also installable directly with Node.js. Full details in the official
+                <a href="https://zwave-js.github.io/zwave-js-ui/#/getting-started/quick-start" target="_blank" rel="noopener">Z-Wave JS UI quick start</a>.
+            </p>
+<pre class="bg-light p-3 rounded"><code># Node.js 22 LTS (skip if already installed for zigbee2mqtt above)
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs git build-essential
+
+git clone https://github.com/zwave-js/zwave-js-ui.git ~/zwave-js-ui
+cd ~/zwave-js-ui
+npm install
+npm run build</code></pre>
+            <p>Test it starts cleanly, then stop it with Ctrl+C:</p>
+<pre class="bg-light p-3 rounded"><code>npm start</code></pre>
+            <p>
+                Run it as a background service so it survives reboots — replace <code>ubuntu</code> (both in
+                <code>User=</code> and in the <code>WorkingDirectory</code> path) with the account you're
+                actually logged in as (<code>whoami</code>); a wrong username fails with
+                <code>status=217/USER</code>:
+            </p>
+<pre class="bg-light p-3 rounded"><code>sudo tee /etc/systemd/system/zwave-js-ui.service > /dev/null &lt;&lt;'EOF'
+[Unit]
+Description=Z-Wave JS UI
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/npm start
+WorkingDirectory=/home/ubuntu/zwave-js-ui
+StandardOutput=inherit
+StandardError=inherit
+Restart=on-failure
+RestartSec=10s
+User=ubuntu
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl enable --now zwave-js-ui</code></pre>
+            <p>
+                Open
+                <a href="http://@(host):8091" target="_blank" rel="noopener"><code>http://@(host):8091</code></a>
+                for its web UI (assumes the default port — Z-Wave JS UI's <code>settings.yaml</code> under
+                <code>http</code> controls this if you changed it), add your device under
+                <em>Settings &rarr; Z-Wave</em> (device path, e.g. <code>/dev/ttyACM0</code>), then under
+                <em>Settings &rarr; MQTT</em> point it at the broker and enable the gateway
+                (<em>Gateway type: ValueID Topics</em> works well with PlantSense's default topic parsing).
+            </p>
+            <p class="mb-0">
+                Prefer containers? Z-Wave JS UI's own docs primarily document a
+                <a href="https://zwave-js.github.io/zwave-js-ui/#/getting-started/docker" target="_blank" rel="noopener">Docker install</a>
+                too. See the
+                <a href="https://zwave-js.github.io/zwave-js-ui/#/guide/mqtt-gateway" target="_blank" rel="noopener">MQTT gateway guide</a>
+                either way for the different gateway/topic modes if you need something other than the default.
+            </p>
+        </div>
+    </div>
+
+    <!-- Zigbee -->
+    <div class="card shadow mb-4" id="zigbee">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Adding a Zigbee device</h6>
+        </div>
+        <div class="card-body">
+            <ol>
+                <li>
+                    In <a href="http://@(host):8081" target="_blank" rel="noopener">zigbee2mqtt</a>, enable
+                    <em>Permit join</em> and pair the device (put it in pairing mode, usually by holding its button).
+                </li>
+                <li>Give the device a <em>friendly name</em> in zigbee2mqtt, e.g. <code>Soil sensor 1</code>.</li>
+                <li>
+                    Open the <a asp-controller="Devices" asp-action="Index">Devices</a> page — the device appears
+                    under <strong>Discovered devices</strong> (PlantSense reads the bridge's retained device list).
+                    Click <strong>Assign…</strong> and pick the sensor slot or air-sensor role it should feed.
+                </li>
+            </ol>
+            <p class="mb-1"><strong>Manual alternative:</strong> open a sensor's settings (Dashboard or Devices &rarr; Edit), set Protocol to Zigbee and enter the topic yourself:</p>
+            <ul class="mb-0">
+                <li><code>zigbee2mqtt/&lt;friendly name&gt;</code> — default mode; the JSON payload is parsed automatically (properties like <code>soil_moisture</code>, <code>moisture</code>, <code>temperature</code>, <code>humidity</code>).</li>
+                <li><code>zigbee2mqtt/&lt;friendly name&gt;/&lt;property&gt;</code> — if zigbee2mqtt runs in attribute output mode and publishes bare numbers per property.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Z-Wave -->
+    <div class="card shadow mb-4" id="zwave">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Adding a Z-Wave device</h6>
+        </div>
+        <div class="card-body">
+            <ol>
+                <li>
+                    In <a href="http://@(host):8091" target="_blank" rel="noopener">Z-Wave JS UI</a>, start
+                    <em>Inclusion</em> (Control Panel &rarr; Manage nodes) and put the device in inclusion mode.
+                </li>
+                <li>Make sure the <em>MQTT Gateway</em> is enabled (Settings &rarr; MQTT) so values are published to the broker.</li>
+                <li>
+                    Optionally enable <em>Publish node details</em> (Settings &rarr; MQTT Gateway) — the node then shows up
+                    under <strong>Discovered devices</strong> on the <a asp-controller="Devices" asp-action="Index">Devices</a> page.
+                </li>
+                <li>
+                    Find the <em>value topic</em> for the reading you want in Z-Wave JS UI
+                    (Control Panel &rarr; select the node &rarr; Values — each value shows its MQTT topic), e.g.
+                    <code>zwave/Node7/sensorMultilevel/Soil moisture/value</code>.
+                </li>
+                <li>
+                    On the Devices page click <strong>Assign…</strong> (pre-fills the node's base topic for you to complete),
+                    or open the sensor's settings, set Protocol to Z-Wave and paste the value topic.
+                </li>
+            </ol>
+            <p class="mb-0">Topic changes take effect immediately — no app restart needed.</p>
+        </div>
+    </div>
+
+    <!-- Pumps & GPIO -->
+    <div class="card shadow mb-4" id="pumps">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Pumps &amp; GPIO</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                Pumps are switched with the Raspberry Pi's <strong>GPIO pins through a relay board</strong>.
+                When a pump runs, PlantSense drives its configured GPIO pin HIGH for the pump's runtime,
+                which closes the relay and powers the pump; the pin then returns LOW.
+            </p>
+            <h6 class="font-weight-bold">Wiring</h6>
+            <ul>
+                <li>Connect each relay channel's input (IN1…IN8) to a free GPIO pin, plus 5V/GND to the relay board.</li>
+                <li>Power the pumps from an <strong>external supply</strong> through the relay contacts — never from the Pi's own 5V pin.</li>
+                <li>Share ground between the Pi, the relay board, and the pump supply.</li>
+            </ul>
+            <p class="mb-1">
+                Recommended pump pins (BCM numbering, safe with a RaspBee II or Z-Pi 7 HAT or no HAT at all):
+                <code>16, 20, 22, 23, 24, 25, 26, 27</code>.
+                Avoid GPIO 0/1 (HAT ID EEPROM), GPIO 2/3 (I2C), GPIO 5/6 (reserved),
+                GPIO 7-11 (SPI0), and GPIO 14/15 (UART — needed by a RaspBee II or Z-Pi 7).
+            </p>
+            <div class="row mt-3">
+                <div class="col-lg-6 mb-3">
+                    <img src="~/images/gpio-header-zpi7.png"
+                         alt="Raspberry Pi 4 GPIO header with a Z-Pi 7 seated: recommended pump pins, taken/unsafe pins, and ground pins labeled."
+                         class="img-fluid rounded border">
+                    <p class="text-muted small text-center mb-0">With a Z-Pi 7 (Z-Wave) HAT seated</p>
+                </div>
+                <div class="col-lg-6 mb-3">
+                    <img src="~/images/gpio-header-raspbee-ii.png"
+                         alt="Raspberry Pi 4 GPIO header with a RaspBee II seated: recommended pump pins, taken/unsafe pins, and ground pins labeled."
+                         class="img-fluid rounded border">
+                    <p class="text-muted small text-center mb-0">With a RaspBee II (Zigbee) HAT seated</p>
+                </div>
+            </div>
+            <h6 class="font-weight-bold mt-3">Configuration</h6>
+            <ol>
+                <li>Open <a asp-controller="WateringView" asp-action="Index">Settings &rarr; Watering</a> and pick a pump.</li>
+                <li>Set its <em>GPIO pin</em>, <em>runtime</em> (seconds), and <em>associated sensor</em>.</li>
+                <li>
+                    Choose a trigger: <strong>Threshold</strong> (runs when the sensor's moisture drops below
+                    its threshold), <strong>Time</strong> (weekly schedule), or leave it manual-only.
+                </li>
+                <li>Enable the pump. Automatic triggers are evaluated every minute; the Manual buttons work immediately.</li>
+            </ol>
+            <p>
+                Pumps can also be triggered from outside PlantSense entirely — e.g. a Home Assistant automation
+                watching its own sensors and calling the pump API. See
+                <a href="#homeassistant">Home Assistant integration</a> below.
+            </p>
+            <p class="mb-0">
+                <strong>Permissions:</strong> the app user needs GPIO access without sudo — set up the udev
+                rules from the README (Quick start, "Configure GPIO permissions") and reboot. Missing
+                permissions show up as errors in the <a asp-controller="Logging" asp-action="Index">logs</a>
+                when a pump starts.
+            </p>
+        </div>
+    </div>
+
+    <!-- Watering setup walkthrough -->
+    <div class="card shadow mb-4" id="watering-setup">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Watering setup walkthrough</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                Watering-by-moisture spans two separate settings screens that don't visually connect to each
+                other, which trips people up: the <strong>moisture threshold %</strong> lives on the sensor
+                (Dashboard), while <strong>which pump reacts to it</strong> lives on the pump (Settings &rarr;
+                Watering). Here's the full flow end to end.
+            </p>
+            <h6 class="font-weight-bold">1. Configure the sensor</h6>
+            <ol>
+                <li>On the <strong>Dashboard</strong>, open the settings for the sensor slot you want to use.</li>
+                <li>Set its <strong>Name</strong> and <strong>Moisture Threshold (%)</strong> — the moisture
+                    level below which pumps watching this sensor should water.</li>
+                <li>Set <strong>Protocol</strong> to Z-Wave or Zigbee and fill in the MQTT topic (see
+                    <a href="#zwave">Add a Z-Wave device</a> / <a href="#zigbee">Add a Zigbee device</a> above
+                    for how to find it), or leave Protocol as <em>None</em> for a directly wired sensor.</li>
+                <li>Save. Confirm the Dashboard card starts showing live moisture readings before moving on.</li>
+            </ol>
+            <h6 class="font-weight-bold mt-3">2. Configure the pump</h6>
+            <ol>
+                <li>Open <a asp-controller="WateringView" asp-action="Index">Settings &rarr; Watering</a> and
+                    pick a pump.</li>
+                <li><strong>Enable Pump</strong>, set its <strong>GPIO pin</strong> and <strong>Runtime</strong>
+                    (how long it runs once triggered).</li>
+                <li>Set <strong>Trigger</strong> to <em>Sensor Threshold</em>, then pick your sensor from
+                    <strong>Use sensor</strong> — its current threshold is shown just below the dropdown so
+                    you can confirm it's the right one without switching screens.</li>
+                <li>Save.</li>
+            </ol>
+            <h6 class="font-weight-bold mt-3">3. What happens next</h6>
+            <p class="mb-0">
+                Every minute, PlantSense checks each enabled pump: for a <em>Sensor Threshold</em> pump, if
+                the assigned sensor's latest moisture reading is below its threshold, the pump runs for its
+                configured runtime; for a <em>Time</em> pump, it runs once the clock hits the scheduled time
+                (any minute of day, not just fixed slots) on a scheduled day. A pump's trigger is one or the
+                other — <em>Sensor Threshold</em> or <em>Time</em> — not both at once; if you want a pump to
+                react to more than one condition (e.g. a schedule <em>and</em> a moisture override), drive it
+                from Home Assistant instead — see <a href="#homeassistant">Home Assistant integration</a> below, which covers all
+                three automation paths.
+            </p>
+        </div>
+    </div>
+
+    <!-- Time & date -->
+    <div class="card shadow mb-4" id="timedate">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Setting the time &amp; date</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                Watering schedules depend on a correct clock. You can set the device's date and time under
+                <strong>Settings &rarr; Time &amp; Date</strong> in the sidebar.
+            </p>
+            <p class="mb-1">
+                On the Pi this uses <code>timedatectl</code> and needs passwordless sudo for exactly that
+                command. Allow it once (replace <code>ubuntu</code> with the user running PlantSense):
+            </p>
+<pre class="bg-light p-3 rounded"><code>echo 'ubuntu ALL=(ALL) NOPASSWD: /usr/bin/timedatectl' | sudo tee /etc/sudoers.d/plantsense-time</code></pre>
+            <p class="mb-0">
+                Setting the clock manually disables automatic (NTP) time sync. If the Pi has internet access,
+                you can instead keep NTP on and skip manual time entirely —
+                <code>sudo timedatectl set-ntp true</code> re-enables it.
+            </p>
+        </div>
+    </div>
+
+    <!-- Swagger -->
+    <div class="card shadow mb-4" id="swagger">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">REST API &amp; Swagger</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                The full REST API is documented interactively in
+                <a href="/swagger" target="_blank" rel="noopener"><strong>Swagger UI &rarr; /swagger</strong></a>,
+                where every endpoint can be tried out directly from the browser.
+            </p>
+            <p>
+                From another machine on your network the base URL is <code>http://@(appHostAndPort)</code>,
+                so Swagger lives at
+                <a href="http://@(appHostAndPort)/swagger" target="_blank" rel="noopener"><code>http://@(appHostAndPort)/swagger</code></a>.
+            </p>
+            <p class="mb-1">The endpoints most useful for external integrations:</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr><th>Endpoint</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>GET /api/Watering/ManualPump/{id}?runtime={seconds}</code></td><td>Run pump <code>id</code> (0–7) for a number of seconds</td></tr>
+                        <tr><td><code>GET /api/Watering/StartPump/{id}</code></td><td>Run pump for the runtime configured on it (Settings &rarr; Watering). A runtime of 0 stops immediately — prefer <code>ManualPump</code> for an explicit duration</td></tr>
+                        <tr><td><code>GET /api/Watering/StopPump/{id}</code></td><td>Stop pump immediately</td></tr>
+                        <tr><td><code>GET /api/Watering/IsPumpRunning/{id}</code></td><td>Returns <code>true</code>/<code>false</code></td></tr>
+                        <tr><td><code>GET /api/Sensor/GetSensorData/{id}</code></td><td>Moisture reading for sensor <code>id</code> (0–7)</td></tr>
+                        <tr><td><code>GET /api/Sensor/GetTempHumidity</code></td><td>Air temperature and humidity</td></tr>
+                        <tr><td><code>GET /api/Device/GetStatus</code></td><td>Zigbee/Z-Wave bridge and adapter status</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="mb-0 text-muted">
+                <i class="fas fa-exclamation-triangle mr-1"></i>
+                The API has no authentication — keep the Pi on your local network.
+            </p>
+        </div>
+    </div>
+
+    <!-- Home Assistant -->
+    <div class="card shadow mb-4" id="homeassistant">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Home Assistant integration</h6>
+        </div>
+        <div class="card-body">
+            <p>
+                Use Home Assistant's built-in <code>rest</code> and <code>rest_command</code> integrations to monitor
+                moisture and control pumps from dashboards, automations, and voice assistants. Add the sections below
+                to <code>configuration.yaml</code>.
+            </p>
+            <p class="text-muted small">
+                The URLs below are pre-filled with <code>@appHostAndPort</code> — the address you're viewing this
+                page from. If that's <code>localhost</code> or another address Home Assistant's network can't
+                reach, replace it with the Pi's LAN IP (or a hostname it can resolve) before pasting.
+            </p>
+
+            <h6 class="font-weight-bold">Three ways to automate watering</h6>
+            <p>Pick per pump — the approaches can be mixed freely:</p>
+            <ul>
+                <li>
+                    <strong>PlantSense threshold:</strong> bind the sensor in PlantSense (Devices page), associate it
+                    with a pump, and set the pump's trigger to <em>Threshold</em>. PlantSense evaluates thresholds
+                    every minute and runs the pump itself — no Home Assistant needed.
+                </li>
+                <li>
+                    <strong>PlantSense schedule:</strong> set the pump's trigger to <em>Time</em> and pick weekly
+                    days + a start time. The pump runs on that schedule regardless of sensor values — also fully
+                    standalone.
+                </li>
+                <li>
+                    <strong>Home Assistant-driven:</strong> let a Home Assistant automation call the pump API
+                    (<code>rest_command</code> &rarr; <code>ManualPump</code>) on whatever trigger you like —
+                    a moisture threshold, a time schedule, weather, presence… The moisture sensor can be a
+                    PlantSense sensor read via the REST API (section 2 below), or any sensor Home Assistant
+                    already knows about through its own integrations.
+                </li>
+            </ul>
+            <p class="text-muted small">
+                Note: a Zigbee/Z-Wave sensor pairs with <em>one</em> coordinator. If Home Assistant runs its own
+                Zigbee/Z-Wave radio, a sensor paired there is not visible to PlantSense (and vice versa) — but both
+                can read the same sensor if they share the same zigbee2mqtt / Z-Wave JS UI instance via MQTT.
+                Either way, the pump API works regardless of where the sensor lives.
+            </p>
+
+            <h6 class="font-weight-bold">1. rest_command — start &amp; stop pumps</h6>
+            <p>Pump 0 shown; repeat for pumps 1–7.</p>
+<pre class="bg-light p-3 rounded"><code>rest_command:
+  # Run pump 0 for 2 minutes
+  plantsense_pump0_2min:
+    url: "http://@(appHostAndPort)/api/Watering/ManualPump/0?runtime=120"
+    method: GET
+
+  # Stop pump 0
+  plantsense_pump0_stop:
+    url: "http://@(appHostAndPort)/api/Watering/StopPump/0"
+    method: GET</code></pre>
+            <p>Call from any automation, script, or dashboard button: <code>service: rest_command.plantsense_pump0_2min</code></p>
+
+            <h6 class="font-weight-bold">2. sensor — pump state, moisture &amp; air readings</h6>
+<pre class="bg-light p-3 rounded"><code>sensor:
+  # Is pump 0 currently running?
+  - platform: rest
+    name: "PlantSense Pump 0 Running"
+    unique_id: plantsense_pump0_running
+    resource: "http://@(appHostAndPort)/api/Watering/IsPumpRunning/0"
+    value_template: "{{ value_json }}"
+    scan_interval: 15
+
+  # Soil moisture for sensor 0
+  - platform: rest
+    name: "PlantSense Moisture 0"
+    unique_id: plantsense_moisture_0
+    resource: "http://@(appHostAndPort)/api/Sensor/GetSensorData/0"
+    value_template: "{{ value_json.moisture }}"
+    unit_of_measurement: "%"
+    device_class: moisture
+    state_class: measurement
+    scan_interval: 60
+
+  # Air temperature
+  - platform: rest
+    name: "PlantSense Temperature"
+    unique_id: plantsense_temperature
+    resource: "http://@(appHostAndPort)/api/Sensor/GetTempHumidity"
+    value_template: "{{ value_json.temperature }}"
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    scan_interval: 60
+
+  # Air humidity
+  - platform: rest
+    name: "PlantSense Humidity"
+    unique_id: plantsense_humidity
+    resource: "http://@(appHostAndPort)/api/Sensor/GetTempHumidity"
+    value_template: "{{ value_json.humidity }}"
+    unit_of_measurement: "%"
+    device_class: humidity
+    state_class: measurement
+    scan_interval: 60</code></pre>
+
+            <h6 class="font-weight-bold">3. switch — pump on/off toggle</h6>
+<pre class="bg-light p-3 rounded"><code>switch:
+  - platform: template
+    switches:
+      plantsense_pump0:
+        friendly_name: "Plant Pump 0"
+        value_template: "{{ states('sensor.plantsense_pump0_running') == 'true' }}"
+        turn_on:
+          service: rest_command.plantsense_pump0_2min
+        turn_off:
+          service: rest_command.plantsense_pump0_stop
+        icon_template: >
+          {% if states('sensor.plantsense_pump0_running') == 'true' %}
+            mdi:water-pump
+          {% else %}
+            mdi:water-pump-off
+          {% endif %}</code></pre>
+
+            <h6 class="font-weight-bold">4. Automation — auto-water on low moisture</h6>
+<pre class="bg-light p-3 rounded"><code>automation:
+  - alias: "PlantSense — Water when moisture is low"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.plantsense_moisture_0
+        below: 35
+    condition:
+      - condition: state
+        entity_id: sensor.plantsense_pump0_running
+        state: "false"
+    action:
+      - service: rest_command.plantsense_pump0_2min</code></pre>
+
+            <p class="mb-0 text-muted">
+                After editing <code>configuration.yaml</code>, restart Home Assistant or reload the REST and
+                Template entities (Developer Tools &rarr; YAML).
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script src="~/js/gui/docspage.js"></script>
